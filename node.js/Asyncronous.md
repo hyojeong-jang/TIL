@@ -37,6 +37,30 @@
 10. Close 페이즈 진입 시 close, destory 관련 콜백을 실행 함.
 11. Close 페이즈 종료 시 더 수행해야할 작업이 있는 지 체크 후 다음 루프를 순회할 지 결정함. (잔여 작업 존재 시 Timer 페이즈부터 다시 순회)
 
+- 아래 코드 스니펫 실행 시
+
+```
+fs.readFile('my-file-path.txt', () => {
+  setTimeout(() => {
+    console.log('setTimeout');
+  }, 0);
+  setImmediate(() => {
+    console.log('setImmediate');
+  });
+});
+```
+
+1. `fs.readFile()`을 만나면 이벤트루프는 libuv에게 해당 작업을 던짐.
+2. 파일읽기는 OS커널에서 비동기 API를 제공하지않기때문에 libuv는 별도의 스레드에 해당 작업을 던짐.
+3. 작업이 완료되면 이벤트루프는 `Pending I/O callback phase`의 `pendingqueue`에 해당 작업의 콜백을 등록함.
+4. 이벤트루프가 `Pending I/O callback phase`진입하여 콜백 실행
+5. `setTimeout`이 `Timer phase`큐에 등록됨.
+6. `setImmediate`이 `Check phase`의 `Check queue`에 등록됨.
+7. `Poll phase`에는 작업이 없으므로 `Check phase`로 진입하여 'setImmediate' 콘솔 출력.
+8. `Timer phase`에 잔여 작업이 있으므로 이벤트루프가 다시 순회함.
+9. `Timer phase`에서 타이머를 검사, 딜레이가 0이므로 `setTimeout`의 콜백 즉시 실행함.
+10. 'setImmediate' 콘솔 출력.
+
 ### libuv
 
 - Node.js에서 사용하는 비동기 I/O 라이브러리
