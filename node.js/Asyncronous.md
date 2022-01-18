@@ -37,7 +37,7 @@
 10. Close 페이즈 진입 시 close, destory 관련 콜백을 실행 함.
 11. Close 페이즈 종료 시 더 수행해야할 작업이 있는 지 체크 후 다음 루프를 순회할 지 결정함. (잔여 작업 존재 시 Timer 페이즈부터 다시 순회)
 
-- 아래 코드 스니펫 실행 시
+- 아래 코드 스니펫 (1) 실행 시
 
 ```
 fs.readFile('my-file-path.txt', () => {
@@ -61,6 +61,55 @@ fs.readFile('my-file-path.txt', () => {
 9. `Timer phase`에서 타이머를 검사, 딜레이가 0이므로 `setTimeout`의 콜백 즉시 실행함.
 10. 'setImmediate' 콘솔 출력.
 
+- 아래 코드 스니펫 (2) 실행 시
+
+```
+var i = 0;
+
+function foo () {
+  i++;
+  if (i > 5) {
+    return;
+  }
+
+  console.log(foo', i);
+
+  setTimeout(() => {
+    console.log('setTimeout', i);
+  }, 0);
+
+  process.nextTick(foo);
+}
+
+setTimeout(foo, 2);
+
+setTimeout(() => {
+  console.log("Other setTimeout");
+}, 2);
+```
+
+- 실행결과
+
+```
+foo 1
+foo 2
+foo 3
+foo 4
+foo 5
+Other setTimeout
+setTimeout 6
+setTimeout 6
+setTimeout 6
+setTimeout 6
+setTimeout 6
+```
+
+- 두개의 `setTimeout`의 딜레이가 2로 동일하므로 Timer phase에서는 그룹화되어 등록됨.
+- 일단 큐에 들어가있으면 시스템 실행한도에 제한이 생기지않는 이상 해당 페이즈가 끝나기 전에 모두 실행됨.
+- 따라서 `process.nextTick(foo)`의 `nextTickQueue`에서 재귀실행으로 `nextTickQueue`의 모든 콜백들을 실행하고,
+- 동일한 그룹의 타이머로 힙에 있는 두번 째 `setTimeout`의 콜백이 실행됨.
+- 그 이후 Timer phase에서 `setTimeout`의 콜백을 처리함.
+
 ### libuv
 
 - Node.js에서 사용하는 비동기 I/O 라이브러리
@@ -72,6 +121,15 @@ fs.readFile('my-file-path.txt', () => {
 
 - Node.js는 비동기 명령을 관리하는 별도의 스레드풀을 가지고있지않음. 이것은 Libuv에 포함된 기능임.
 - 기본값으로 4개의 스레드를 사용하고, 최대 128개까지 사용가능함.
+
+### nextTickQueue & microTaskQueue
+
+- nextTickQueue는 `process.nextTick()`의 콜백을 가지고있음.
+- microTaskQueue는 resolve된 프라미스의 콜백을 가지고있음.
+- 이 두개의 큐는 이벤트루프의 일부가 아니다. 즉, libuv 라이브러리에 포함된 것이 아니라 node.js의 기술임.
+- 이 두개의 큐는 어떤 페이즈에서 다음 페이즈로 넘어가기 전 자신이 가지고있는 콜백을 최대한 빨리 실행시켜야함. (페이즈에서 다른 페이즈로 넘어가는 것을 tick이라고 부름.)
+- 이 두개의 큐는 시스템 실행한도의 영향을 받지않기때문에 node.js는 이 큐가 비워질 때까지 콜백들을 실행함.
+- nextTickQueue의 우선순위가 microTaskQueue보다 더 높다.
 
 #### 각주
 
