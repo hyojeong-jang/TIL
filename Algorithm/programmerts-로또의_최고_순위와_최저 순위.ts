@@ -1,4 +1,4 @@
-function solution(lottos: number[], win_nums: number[]) {
+function solution3(lottos: number[], win_nums: number[]) {
   const wonNumList = [];
   const zeroList = [];
 

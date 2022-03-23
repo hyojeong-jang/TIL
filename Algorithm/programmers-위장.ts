@@ -15,30 +15,34 @@ const description = `스파이들은 매일 다른 옷을 조합하여 입어 �
 - 같은 이름을 가진 의상은 존재하지 않습니다.
 - clothes의 모든 원소는 문자열로 이루어져 있습니다.
 - 모든 문자열의 길이는 1 이상 20 이하인 자연수이고 알파벳 소문자 또는 '_' 로만 이루어져 있습니다.
-- 스파이는 하루에 최소 한 개의 의상은 입습니다.`
+- 스파이는 하루에 최소 한 개의 의상은 입습니다.`;
 
-type Cloth = [string, string]
+type Cloth = [string, string];
 
-const solution = (clothes: Cloth[]): number => {
-  const answer: number = 0
-  return answer
-}
+const solution1 = (clothes: Cloth[]): number => {
+  const answer: number = 0;
+  return answer;
+};
 
 const map = {
   face: {
     1: true,
     2: true,
-    3: true
+    3: true,
   },
   pants: {
     1: true,
-  }
-}
+  },
+};
 
-const temp = ['face', 'pants', 'headgear', 'shirts']
-const ttemp = [['face', 'pants', 'headgear', 'shirts'], ['face', 'pants', 'headgear'], ['face', 'pants', 'shirts']]
+const temp = ["face", "pants", "headgear", "shirts"];
+const ttemp = [
+  ["face", "pants", "headgear", "shirts"],
+  ["face", "pants", "headgear"],
+  ["face", "pants", "shirts"],
+];
 
 const list = {
   face: [1, 2, 3],
-  pants: [1]
-}
+  pants: [1],
+};
